@@ -33,7 +33,7 @@ app.use(
 app.use(express.static(path.join(__dirname, 'dist')));
 
 // SPA fallback
-app.get('*', (req, res) => {
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
