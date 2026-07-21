@@ -1,8 +1,8 @@
 import './GameCard.css'
 
-const GameCard = ({ game, onClick }) => {
+const GameCard = ({ game, onClick, isFocused }) => {
   return (
-    <div className="game-card" onClick={onClick}>
+    <div className={`game-card ${isFocused ? 'focused' : ''}`} onClick={onClick} id={`game-card-${game.id}`}>
       <div className="game-card-image">
         <img src={game.coverUrl} alt={game.title} />
         <div className="play-overlay">

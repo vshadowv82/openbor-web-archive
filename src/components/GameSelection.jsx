@@ -1,9 +1,19 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import GameCard from './GameCard'
 import './GameSelection.css'
 
-const GameRow = ({ category, games, onSelectGame }) => {
+const GameRow = ({ category, games, onSelectGame, isFocusedRow, focusedCol }) => {
   const rowRef = useRef(null);
+
+  useEffect(() => {
+    if (isFocusedRow && rowRef.current) {
+      const activeCard = rowRef.current.children[focusedCol];
+      if (activeCard && activeCard.scrollIntoView) {
+        // Scroll the horizontal row to bring the card into view smoothly
+        activeCard.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+    }
+  }, [isFocusedRow, focusedCol]);
 
   const scroll = (direction) => {
     if (rowRef.current) {
@@ -19,13 +29,18 @@ const GameRow = ({ category, games, onSelectGame }) => {
   if (!games || games.length === 0) return null;
 
   return (
-    <div className="game-row">
+    <div className={`game-row ${isFocusedRow ? 'focused-row' : ''}`}>
       <h2 className="row-title">{category}</h2>
       <div className="row-container">
         <button className="slider-btn left" onClick={() => scroll('left')}>&#8249;</button>
         <div className="row-posters" ref={rowRef}>
           {games.map((game, index) => (
-            <GameCard key={game.id || index} game={game} onClick={() => onSelectGame(game)} />
+            <GameCard 
+              key={game.id || index} 
+              game={game} 
+              onClick={() => onSelectGame(game)} 
+              isFocused={isFocusedRow && focusedCol === index}
+            />
           ))}
         </div>
         <button className="slider-btn right" onClick={() => scroll('right')}>&#8250;</button>
@@ -34,37 +49,17 @@ const GameRow = ({ category, games, onSelectGame }) => {
   );
 };
 
-const GameSelection = ({ games, onSelectGame }) => {
-  // Group games by category
-  const categories = useMemo(() => {
-    const grouped = {};
-    games.forEach(game => {
-      const cat = game.category || 'More Games';
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(game);
-    });
-    
-    // Sort logic (ensure Featured Classics is first)
-    const sortedCategories = Object.keys(grouped).sort((a, b) => {
-      if (a === 'Featured Classics') return -1;
-      if (b === 'Featured Classics') return 1;
-      return a.localeCompare(b);
-    });
-
-    return sortedCategories.map(name => ({
-      name,
-      games: grouped[name]
-    }));
-  }, [games]);
-
+const GameSelection = ({ categories, onSelectGame, focusedRow, focusedCol }) => {
   return (
     <div className="game-selection">
-      {categories.map(cat => (
+      {categories.map((cat, rowIndex) => (
         <GameRow 
           key={cat.name} 
           category={cat.name} 
           games={cat.games} 
           onSelectGame={onSelectGame} 
+          isFocusedRow={focusedRow === rowIndex + 1}
+          focusedCol={focusedCol}
         />
       ))}
     </div>
