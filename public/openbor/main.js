@@ -200,6 +200,20 @@
 							}
 						);
 						window.Module.arguments = [];
+					} else if (myGame.assetType === 'custom') {
+                        console.log('Custom asset loading. Bypassing engine unpacking...');
+                        if (myGame.onCustomAssetLoader) {
+                            myGame.onCustomAssetLoader().then(() => {
+                                window.Module.removeRunDependency('unpack');
+                                myGame.LoadingOverlay.style.display = 'none';
+                            }).catch(e => {
+                                console.error('Custom loader failed:', e);
+                                myGame.LoadingOverlay.innerText = 'Download Error';
+                            });
+                        } else {
+                            window.Module.removeRunDependency('unpack');
+                            myGame.LoadingOverlay.style.display = 'none';
+                        }
 					} else {
 						myGame.unzipToFS(myGame.paths.assetsPaths)
 							.then(() => {

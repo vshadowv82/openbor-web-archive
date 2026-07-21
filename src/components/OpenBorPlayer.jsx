@@ -21,7 +21,7 @@ const OpenBorPlayer = ({ game, onExit }) => {
           contentPath: contentPath,
           baseWidth: 320,
           baseHeight: 240,
-          assetType: 'zip',
+          assetType: 'custom',
           paths: {
             assetsPaths: [], // We handle downloading ourselves to bypass ZIP requirement
             'OpenBOR.zip': contentPath + 'OpenBOR.zip',
@@ -36,32 +36,18 @@ const OpenBorPlayer = ({ game, onExit }) => {
         window.myGame.canvas.width = window.myGame.baseWidth;
         window.myGame.canvas.height = window.myGame.baseHeight;
 
-        // Step 2: Inject main.js to load the WASM environment
-        // We need to wait for Module and FS to be available
+        // Step 2: Set the custom asset loader to handle the download before engine start
+        window.myGame.onCustomAssetLoader = () => {
+          return downloadAndMountPak(game.pakUrl, (state) => {
+            if (isMounted) setLoadState(state);
+          });
+        };
+
+        // Step 3: Inject main.js to load the WASM environment
         const script = document.createElement('script');
         script.src = contentPath + 'main.js';
         script.async = true;
-        
-        const scriptPromise = new Promise((resolve, reject) => {
-          script.onload = resolve;
-          script.onerror = () => reject(new Error("Failed to load main.js"));
-        });
-        
         document.body.appendChild(script);
-        await scriptPromise;
-
-        // Step 3: Fetch the PAK from archive.org and mount it
-        await downloadAndMountPak(game.pakUrl, (state) => {
-          if (isMounted) setLoadState(state);
-        });
-
-        // Step 4: After mounting, if the engine needs a push to start, we can call it.
-        // Usually, main.js starts automatically, but it might have been waiting for assetsPaths.
-        // If it was waiting, we might need to trigger the run() function manually.
-        if (window.Module && window.Module.removeRunDependency) {
-          // main.js might add run dependencies for assets. If we didn't provide any, it might just start.
-          console.log("Game loaded and mounted to FS.");
-        }
 
       } catch (error) {
         if (isMounted) setLoadState({ status: 'error', message: error.message, progress: 0 });
