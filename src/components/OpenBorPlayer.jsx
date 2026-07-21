@@ -71,11 +71,39 @@ const OpenBorPlayer = ({ game, onExit }) => {
     window.location.reload();
   };
 
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      if (containerRef.current.requestFullscreen) {
+        containerRef.current.requestFullscreen();
+      } else if (containerRef.current.webkitRequestFullscreen) { /* Safari */
+        containerRef.current.webkitRequestFullscreen();
+      } else if (containerRef.current.msRequestFullscreen) { /* IE11 */
+        containerRef.current.msRequestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) { /* Safari */
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) { /* IE11 */
+        document.msExitFullscreen();
+      }
+    }
+  };
+
   return (
     <div className="openbor-player-container">
       <div className="player-header">
         <h2>{game.title}</h2>
-        <button className="exit-btn" onClick={handleExit}>Exit Game</button>
+        <div className="header-actions">
+          <button className="control-btn" onClick={toggleFullscreen}>
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+              <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+            </svg>
+            Fullscreen
+          </button>
+          <button className="control-btn exit-btn" onClick={handleExit}>Exit Game</button>
+        </div>
       </div>
 
       <div className="canvas-wrapper" ref={containerRef}>
