@@ -22,11 +22,9 @@ const getCategory = (title) => {
   return 'Community Creations';
 };
 
-// Generate a random high-quality cover using Unsplash source (since we don't have scraped box art)
-// We use a deterministic seed based on the title so it doesn't change every refresh
-const getCover = (title) => {
-  const seed = title.replace(/\s+/g, '').slice(0, 10);
-  return `https://picsum.photos/seed/${seed}/400/600`;
+// Use locally generated covers in the public folder
+const getCover = (id) => {
+  return `/covers/${id}.jpg`;
 };
 
 try {
@@ -48,13 +46,12 @@ try {
     if (file.name.endsWith('.pak')) {
       // Clean up the title (remove [v.3.0 Build 4086] and .pak)
       let title = file.name.replace(/\.pak$/i, '');
-      title = title.replace(/\[.*?\]/g, '').trim(); // Remove anything in brackets
-      
+      const gameId = file.md5 || title.replace(/\s+/g, '-').toLowerCase();
       const gameObj = {
-        id: file.md5 || title.replace(/\s+/g, '-').toLowerCase(),
+        id: gameId,
         title: title,
         pakUrl: baseUrl + encodeURIComponent(file.name),
-        coverUrl: getCover(title),
+        coverUrl: getCover(gameId),
         category: getCategory(title),
         description: `Experience ${title} - a classic OpenBOR fan game.`
       };
